@@ -75,9 +75,13 @@ const MovieCatalog = () => {
           {movies.map(movie => (
             <div key={movie.id} className="group flex flex-col relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border border-slate-100">
               <Link to={`/movies/${movie.id}`} className="block relative aspect-[2/3] bg-slate-200 overflow-hidden">
-                <div className="absolute inset-0 bg-slate-100 flex items-center justify-center">
-                  <Film className="h-12 w-12 text-slate-300" />
-                </div>
+                {movie.imageUrl ? (
+                  <img src={movie.imageUrl} alt={movie.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute inset-0 bg-slate-100 flex items-center justify-center">
+                    <Film className="h-12 w-12 text-slate-300" />
+                  </div>
+                )}
                 {movie.rating && (
                   <div className="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1 z-10">
                     <Star className="h-3 w-3 fill-brand-400 text-brand-400" />

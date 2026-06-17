@@ -2,7 +2,6 @@ package com.cineverse.service;
 
 import com.cineverse.dto.BookingRequest;
 import com.cineverse.entity.Booking;
-import com.cineverse.entity.Movie;
 import com.cineverse.repository.BookingRepository;
 import com.cineverse.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +23,11 @@ public class BookingService {
         if (request.getMovieId() == null) {
             throw new IllegalArgumentException("Movie ID cannot be null");
         }
+        long movieId = request.getMovieId();
         // Validate the movie exists
-        movieRepository.findById(request.getMovieId())
+        movieRepository.findById(movieId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Movie not found with id: " + request.getMovieId()));
+                        "Movie not found with id: " + movieId));
 
         if (request.getSeats() == null || request.getSeats().isEmpty()) {
             throw new IllegalArgumentException("At least one seat must be selected.");

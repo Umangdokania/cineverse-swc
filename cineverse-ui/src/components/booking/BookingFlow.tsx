@@ -31,16 +31,8 @@ const BookingFlow = () => {
 
   const handleSeatConfirm = (seats: string[]) => {
     setSelectedSeats(seats);
-    setStep(3);
-  };
-
-  const handleFinalBooking = () => {
-    setSubmitting(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      setSubmitting(false);
-      navigate('/confirmation');
-    }, 1500);
+    // Navigate to summary/checkout page with booking state
+    navigate('/summary', { state: { movie, ticketCount, selectedSeats: seats } });
   };
 
   if (loading) return <div className="p-12 text-center text-slate-500 font-medium">Loading booking flow...</div>;
@@ -119,45 +111,6 @@ const BookingFlow = () => {
         />
       )}
 
-      {/* Step 3: Confirmation / Payment Mock */}
-      {step === 3 && (
-        <div className="bg-white rounded-xl shadow-card border border-slate-200 p-0 overflow-hidden max-w-md mx-auto">
-          <div className="bg-slate-900 p-6 text-white text-center">
-            <Ticket className="h-10 w-10 text-brand-400 mx-auto mb-2" />
-            <h2 className="text-xl font-bold mb-1">Order Summary</h2>
-            <p className="text-slate-400 text-sm">Review your booking details</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between border-b border-slate-100 pb-4">
-                <span className="text-slate-500 font-medium">Movie</span>
-                <span className="font-bold text-slate-900 text-right">{movie.title}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-4">
-                <span className="text-slate-500 font-medium">Tickets</span>
-                <span className="font-bold text-slate-900">{ticketCount}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-4">
-                <span className="text-slate-500 font-medium">Seats</span>
-                <span className="font-bold text-slate-900">{selectedSeats.join(', ')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Total Amount</span>
-                <span className="font-bold text-brand-600 text-lg">Rs. {ticketCount * 250}</span>
-              </div>
-            </div>
-
-            <button 
-              onClick={handleFinalBooking}
-              disabled={submitting}
-              className="w-full btn-primary py-3"
-            >
-              {submitting ? 'Processing Payment...' : 'Proceed to Pay'}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
