@@ -1,35 +1,45 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { login, saveAuthData } from '../services/api';
+import { register, saveAuthData, login } from '../services/api';
 
-const quotes = [
-  { text: "Cinema is a mirror by which we often see ourselves.", author: "Martin Scorsese" },
-  { text: "Film is the art of the image — and the image is a dream.", author: "Orson Welles" },
-];
-const quote = quotes[Math.floor(Math.random() * quotes.length)];
+const getPasswordStrength = (pw: string): { level: number; label: string; color: string } => {
+  if (pw.length === 0) return { level: 0, label: '', color: 'transparent' };
+  if (pw.length < 6)  return { level: 1, label: 'Too short', color: '#e63946' };
+  if (pw.length < 8)  return { level: 2, label: 'Weak', color: '#f97316' };
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) return { level: 4, label: 'Strong', color: '#2ec4b6' };
+  return { level: 3, label: 'Fair', color: '#f5c518' };
+};
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const navigate = useNavigate();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const pwStrength = getPasswordStrength(password);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
-      const response = await login(email, password);
-      saveAuthData(response.data);
+      await register(name, email, password);
+      const loginRes = await login(email, password);
+      saveAuthData(loginRes.data);
       navigate('/movies');
     } catch (err: any) {
       const msg =
-        err?.response?.data?.error ??
         err?.response?.data?.message ??
-        'Login failed. Please check your credentials.';
+        err?.response?.data?.error ??
+        'Registration failed. Email may already be in use.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -38,7 +48,7 @@ const LoginPage = () => {
 
   return (
     <div
-      id="login-page"
+      id="register-page"
       className="min-h-[calc(100vh-72px)] flex"
       style={{ background: 'var(--c-bg)' }}
     >
@@ -50,11 +60,10 @@ const LoginPage = () => {
           borderRight: '1px solid var(--c-border)',
         }}
       >
-        {/* Glow decorations */}
-        <div aria-hidden className="absolute -top-20 -left-20 w-80 h-80 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(245,197,24,0.12) 0%, transparent 70%)' }} />
-        <div aria-hidden className="absolute -bottom-20 right-0 w-64 h-64 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(46,196,182,0.1) 0%, transparent 70%)' }} />
+        <div aria-hidden className="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(46,196,182,0.12) 0%, transparent 70%)' }} />
+        <div aria-hidden className="absolute bottom-10 left-0 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(245,197,24,0.09) 0%, transparent 70%)' }} />
 
         {/* Brand */}
         <div className="relative z-10">
@@ -76,33 +85,48 @@ const LoginPage = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="relative z-10"
         >
-          <div className="text-5xl mb-8 animate-float">🎬</div>
-          <blockquote>
-            <p
-              className="text-2xl font-medium leading-relaxed mb-4 italic"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: 'var(--c-text)',
-                opacity: 0.9,
-              }}
-            >
-              "{quote.text}"
-            </p>
-            <footer className="text-sm" style={{ color: 'var(--c-muted)' }}>
-              — {quote.author}
-            </footer>
-          </blockquote>
+          <div className="text-5xl mb-8 animate-float">🎟</div>
+          <h2
+            className="text-3xl font-black mb-4 leading-tight"
+            style={{ fontFamily: "'Playfair Display', serif", color: 'var(--c-text)' }}
+          >
+            Join the{' '}
+            <span className="text-gold-shimmer italic">Inner Circle</span>
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--c-muted)' }}>
+            Get access to early screenings, exclusive booking slots, and a personalized cinema experience tailored for you.
+          </p>
+
+          {/* Feature list */}
+          <div className="mt-8 space-y-3">
+            {[
+              '⚡ Instant seat confirmation',
+              '🎬 Access to all current releases',
+              '🔔 Priority booking alerts',
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className="flex items-center gap-3 text-sm"
+                style={{ color: 'var(--c-muted)' }}
+              >
+                <span>{item}</span>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Bottom decoration */}
+        {/* Bottom indicator */}
         <div className="relative z-10 flex gap-3">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
               className="h-1 flex-1 rounded-full"
               style={{
-                background: i < 2 ? 'var(--c-gold)' : 'var(--c-border)',
-                opacity: i < 2 ? 1 : 0.4,
+                background: i < 3 ? 'var(--c-gold)' : 'var(--c-border)',
+                opacity: i < 3 ? 1 : 0.4,
               }}
             />
           ))}
@@ -132,14 +156,14 @@ const LoginPage = () => {
               className="text-3xl font-black mb-2"
               style={{ fontFamily: "'Playfair Display', serif", color: 'var(--c-text)' }}
             >
-              Welcome Back
+              Create Account
             </h1>
             <p className="text-sm" style={{ color: 'var(--c-muted)' }}>
-              Sign in to continue your cinematic journey
+              Start your premium cinema experience today
             </p>
           </div>
 
-          {/* Error message */}
+          {/* Error */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -163,9 +187,22 @@ const LoginPage = () => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="input-group">
-              <label htmlFor="login-email">Email address</label>
+              <label htmlFor="register-name">Full Name</label>
               <input
-                id="login-email"
+                id="register-name"
+                type="text"
+                placeholder="Jane Doe"
+                value={name}
+                required
+                className="input-field"
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="register-email">Email Address</label>
+              <input
+                id="register-email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -176,13 +213,14 @@ const LoginPage = () => {
             </div>
 
             <div className="input-group" style={{ position: 'relative' }}>
-              <label htmlFor="login-password">Password</label>
+              <label htmlFor="register-password">Password</label>
               <input
-                id="login-password"
+                id="register-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="Min. 6 characters"
                 value={password}
                 required
+                minLength={6}
                 className="input-field"
                 style={{ paddingRight: '44px' }}
                 onChange={(e) => setPassword(e.target.value)}
@@ -205,10 +243,34 @@ const LoginPage = () => {
                   </svg>
                 )}
               </button>
+
+              {/* Password strength bar */}
+              {password.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-2"
+                >
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div
+                        key={level}
+                        className="flex-1 h-1 rounded-full transition-all duration-300"
+                        style={{
+                          background: level <= pwStrength.level ? pwStrength.color : 'var(--c-border)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs" style={{ color: pwStrength.color }}>
+                    {pwStrength.label}
+                  </p>
+                </motion.div>
+              )}
             </div>
 
             <button
-              id="login-submit"
+              id="register-submit"
               type="submit"
               disabled={loading}
               className="btn-primary w-full"
@@ -220,9 +282,9 @@ const LoginPage = () => {
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
                     <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
                   </svg>
-                  Signing in…
+                  Creating account…
                 </>
-              ) : 'Sign In'}
+              ) : 'Create Account'}
             </button>
           </form>
 
@@ -233,17 +295,17 @@ const LoginPage = () => {
             <div className="divider flex-1" />
           </div>
 
-          {/* Footer link */}
+          {/* Footer */}
           <p className="text-center text-sm" style={{ color: 'var(--c-muted)' }}>
-            New to Cineverse?{' '}
+            Already have an account?{' '}
             <Link
-              to="/register"
+              to="/login"
               className="font-semibold transition-colors"
               style={{ color: 'var(--c-gold)' }}
               onMouseEnter={e => (e.currentTarget.style.color = '#fff8dc')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--c-gold)')}
             >
-              Create an account
+              Sign In
             </Link>
           </p>
         </motion.div>
@@ -252,4 +314,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

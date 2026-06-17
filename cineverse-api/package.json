@@ -1,0 +1,14 @@
+{
+  "name": "cineverse-api",
+  "version": "0.0.1-SNAPSHOT",
+  "description": "Cineverse Spring Boot backend",
+  "scripts": {
+    "start": "./gradlew bootRun",
+    "dev": "./gradlew bootRun",
+    "build": "./gradlew build",
+    "clean": "./gradlew clean"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

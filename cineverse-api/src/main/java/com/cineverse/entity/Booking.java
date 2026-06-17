@@ -1,0 +1,40 @@
+package com.cineverse.entity;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "bookings")
+@Data
+public class Booking {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull
+    @Column(name = "movie_id", nullable = false)
+    private Long movieId;
+
+    @NotBlank
+    @Column(name = "user_email", nullable = false)
+    private String userEmail;
+
+    /** Comma-separated seat labels, e.g. "S1,S3,S5" */
+    @NotBlank
+    @Column(nullable = false)
+    private String seats;
+
+    @Column(name = "booked_at", nullable = false)
+    private LocalDateTime bookedAt;
+
+    @Column(name = "total_seats", nullable = false)
+    private Integer totalSeats;
+
+    @PrePersist
+    protected void onCreate() {
+        bookedAt = LocalDateTime.now();
+    }
+}
