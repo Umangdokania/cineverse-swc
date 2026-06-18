@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Film, Star, Clock, Calendar } from 'lucide-react';
 import { getMovies, type Movie } from '../services/api';
 
@@ -7,6 +7,8 @@ const MovieCatalog = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     getMovies()
@@ -14,6 +16,21 @@ const MovieCatalog = () => {
       .catch(() => setError('Could not load movies. Is the backend running?'))
       .finally(() => setLoading(false));
   }, []);
+
+  // Extract search query
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search')?.toLowerCase() || '';
+
+  // Filter movies
+  const filteredMovies = movies.filter(movie => {
+    const matchesSearch = movie.title.toLowerCase().includes(searchQuery) || 
+                          (movie.genre && movie.genre.toLowerCase().includes(searchQuery));
+    const matchesFilter = activeFilter ? movie.genre?.includes(activeFilter) : true;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const FILTERS = ['Action', 'Sci-Fi', 'Drama', 'Thriller', 'Animation', 'Crime'];
 
   if (loading) {
     return (
@@ -51,28 +68,39 @@ const MovieCatalog = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Movies in Cinemas</h1>
-          <p className="text-slate-500 mt-1">{movies.length} movies showing near you</p>
+          <h1 className="text-3xl font-bold text-slate-900">
+            {searchQuery ? `Search Results for "${searchQuery}"` : "Movies in Cinemas"}
+          </h1>
+          <p className="text-slate-500 mt-1">{filteredMovies.length} movies showing near you</p>
         </div>
         
-        {/* Placeholder for Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-          <button className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap">English</button>
-          <button className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap">Hindi</button>
-          <button className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap">Action</button>
-          <button className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap">Comedy</button>
+        {/* Filters */}
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+          {FILTERS.map(filter => (
+            <button 
+              key={filter}
+              onClick={() => setActiveFilter(activeFilter === filter ? null : filter)}
+              className={`px-4 py-1.5 border rounded-full text-sm font-medium whitespace-nowrap transition ${
+                activeFilter === filter 
+                  ? 'bg-brand-600 border-brand-600 text-white' 
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
         </div>
       </div>
 
-      {movies.length === 0 ? (
+      {filteredMovies.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
           <Film className="h-12 w-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-lg font-medium text-slate-900">No movies found</h3>
-          <p className="text-slate-500">Check back later for new releases.</p>
+          <p className="text-slate-500">Try adjusting your search criteria or check back later.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {movies.map(movie => (
+          {filteredMovies.map(movie => (
             <div key={movie.id} className="group flex flex-col relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border border-slate-100">
               <Link to={`/movies/${movie.id}`} className="block relative aspect-[2/3] bg-slate-200 overflow-hidden">
                 {movie.imageUrl ? (

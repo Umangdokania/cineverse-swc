@@ -80,8 +80,11 @@ const BookingConfirmation = () => {
         </div>
 
         {/* Actions */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="btn-secondary py-3 px-6 flex items-center justify-center gap-2 bg-white">
+        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center print:hidden">
+          <button 
+            onClick={() => window.print()}
+            className="btn-secondary py-3 px-6 flex items-center justify-center gap-2 bg-white"
+          >
             <Download className="h-5 w-5" /> Download PDF
           </button>
           <Link to="/history" className="btn-primary py-3 px-6 flex items-center justify-center gap-2">
