@@ -37,6 +37,13 @@ public class Booking {
     @Column(name = "show_date", nullable = false)
     private String showDate;
 
+    /** The time of the show, e.g. "7:30 PM" */
+    @Column(name = "show_time")
+    private String showTime = "7:30 PM"; // Default value for existing backwards compatibility
+
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     @PrePersist
     protected void onCreate() {
         bookedAt = LocalDateTime.now();

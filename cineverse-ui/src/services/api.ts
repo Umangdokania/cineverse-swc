@@ -37,7 +37,7 @@ export interface LoginResponse {
 
 // ── Axios instance ────────────────────────────────────────
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -50,6 +50,21 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Global response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 401 Unauthorized globally
+    if (error.response && error.response.status === 401) {
+      clearAuthData();
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ── Auth ──────────────────────────────────────────────────
 export const login = async (email: string, password: string) =>
@@ -70,8 +85,8 @@ export const getMovieById = async (id: number) => api.get<Movie>(`/movies/${id}`
 export const getTheatres = async () => api.get<Theatre[]>('/theatres');
 
 // ── Bookings ──────────────────────────────────────────────
-export const createBooking = async (movieId: number, seats: string[], showDate?: string) =>
-  api.post<Booking>('/bookings', { movieId, seats, showDate: showDate || new Date().toISOString().split('T')[0] });
+export const createBooking = async (movieId: number, seats: string[], showDate: string, showTime?: string) =>
+  api.post<Booking>('/bookings', { movieId, seats, showDate, showTime });
 
 export const getMyBookings = async () => api.get<Booking[]>('/bookings/my');
 
@@ -79,9 +94,11 @@ export const getBookingsForMovie = async (movieId: number) =>
   api.get<Booking[]>(`/bookings/movie/${movieId}`);
 
 /** Fetch list of booked seat labels for a movie on a given date (for real-time seat map) */
-export const getBookedSeats = async (movieId: number, showDate?: string) => {
+export const getBookedSeats = async (movieId: number, showDate?: string, showTime?: string) => {
   const date = showDate || new Date().toISOString().split('T')[0];
-  return api.get<string[]>(`/bookings/seats/${movieId}`, { params: { showDate: date } });
+  const params: any = { showDate: date };
+  if (showTime) params.showTime = showTime;
+  return api.get<string[]>(`/bookings/seats/${movieId}`, { params });
 };
 
 // ── Auth helpers ──────────────────────────────────────────

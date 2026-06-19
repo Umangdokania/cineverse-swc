@@ -8,4 +8,5 @@ public class BookingRequest {
     private Long movieId;
     private List<String> seats;
     private String showDate;
+    private String showTime;
 }

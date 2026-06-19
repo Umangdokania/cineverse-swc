@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,37 +7,97 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #09090b; /* bgDark */
+    color: #f8fafc;
   }
   
   body {
     @apply antialiased min-h-screen flex flex-col;
   }
+
+  /* Custom Scrollbar for a sleek look */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #262626;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #14b8a6; /* Brand accent */
+  }
 }
 
 @layer components {
+  /* Headings use the premium Outfit font */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+
   .btn-primary {
-    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 inline-flex items-center justify-center;
+    @apply bg-brand-600 hover:bg-brand-500 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 inline-flex items-center justify-center shadow-lg hover:shadow-brand-500/50 transform hover:-translate-y-0.5;
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-slate-50 text-slate-700 font-medium py-2 px-4 border border-slate-300 rounded-md transition-colors duration-200 inline-flex items-center justify-center;
+    @apply bg-surface-dark hover:bg-slate-800 text-slate-200 font-medium py-3 px-6 border border-slate-700 rounded-lg transition-all duration-300 inline-flex items-center justify-center hover:border-slate-600;
   }
 
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 inline-flex items-center justify-center;
+    @apply bg-red-600 hover:bg-red-500 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 inline-flex items-center justify-center shadow-lg hover:shadow-red-500/50 transform hover:-translate-y-0.5;
   }
   
   .input-field {
-    @apply block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm border p-2.5 outline-none transition-colors;
+    @apply block w-full rounded-xl bg-surface-dark/50 backdrop-blur-sm border-slate-700 text-white shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm border p-4 outline-none transition-all placeholder-slate-500 focus:bg-slate-800/80;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-card border border-slate-100 overflow-hidden;
+    @apply bg-cinema-card rounded-2xl shadow-card border border-cinema-border overflow-hidden transition-all duration-300;
+  }
+
+  /* Advanced Premium Glassmorphism */
+  .glass-panel {
+    @apply bg-cinema-card/70 backdrop-blur-xl border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.5)];
+  }
+
+  .glass-card {
+    @apply bg-slate-900/40 backdrop-blur-lg border border-slate-800/50 rounded-2xl shadow-xl transition-all duration-300 hover:bg-slate-900/60 hover:border-slate-700/50;
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider;
+  }
+
+  /* Seat Selection Screen Curve */
+  .screen-curve {
+    @apply w-full h-12 border-t-4 border-brand-500 rounded-t-[100px] shadow-[0_-15px_30px_rgba(20,184,166,0.3)] mb-12 opacity-80;
+  }
+
+  /* Shimmer effect for skeleton loaders */
+  .shimmer {
+    @apply relative overflow-hidden bg-slate-800;
+  }
+  .shimmer::after {
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite];
+    content: '';
+  }
+}
+
+@layer utilities {
+  .animate-pulse-glow {
+    animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px rgba(20,184,166,0.5)); }
+    50% { opacity: 0.8; filter: drop-shadow(0 0 5px rgba(20,184,166,0.2)); }
   }
 }

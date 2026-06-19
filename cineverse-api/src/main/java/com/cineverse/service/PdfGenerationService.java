@@ -6,6 +6,10 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -64,8 +68,10 @@ public class PdfGenerationService {
             table.addCell(cell);
 
             // Rows
+            addTableRow(table, "Transaction ID:", booking.getTransactionId(), normalFont);
             addTableRow(table, "Booking ID:", String.valueOf(booking.getId()), normalFont);
             addTableRow(table, "Date:", booking.getShowDate(), normalFont);
+            addTableRow(table, "Time:", booking.getShowTime(), normalFont);
             addTableRow(table, "Seats:", booking.getSeats(), normalFont);
             addTableRow(table, "Total Seats:", String.valueOf(booking.getTotalSeats()), normalFont);
             
@@ -75,10 +81,21 @@ public class PdfGenerationService {
 
             document.add(table);
 
+            // Generate and Add QR Code
+            try {
+                String qrData = "TXN:" + booking.getTransactionId() + "|BK:" + booking.getId() + "|MOVIE:" + movie.getTitle();
+                Image qrImage = generateQrCodeImage(qrData);
+                qrImage.setAlignment(Element.ALIGN_CENTER);
+                qrImage.setSpacingBefore(20);
+                document.add(qrImage);
+            } catch (Exception ex) {
+                logger.warn("Could not generate QR code for PDF ticket", ex);
+            }
+
             // Footer
             Paragraph footer = new Paragraph("Please present this ticket at the entrance.\nEnjoy the movie!", normalFont);
             footer.setAlignment(Element.ALIGN_CENTER);
-            footer.setSpacingBefore(50);
+            footer.setSpacingBefore(30);
             document.add(footer);
 
             document.close();
@@ -89,13 +106,24 @@ public class PdfGenerationService {
         }
     }
 
+    private Image generateQrCodeImage(String barcodeText) throws Exception {
+        QRCodeWriter barcodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = barcodeWriter.encode(barcodeText, BarcodeFormat.QR_CODE, 200, 200);
+        
+        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+        byte[] pngData = pngOutputStream.toByteArray();
+        
+        return Image.getInstance(pngData);
+    }
+
     private void addTableRow(PdfPTable table, String label, String value, Font font) {
         PdfPCell labelCell = new PdfPCell(new Phrase(label, font));
         labelCell.setPadding(8);
         labelCell.setBackgroundColor(Color.decode("#f9fafb"));
         labelCell.setBorderColor(Color.decode("#e5e7eb"));
 
-        PdfPCell valueCell = new PdfPCell(new Phrase(value, font));
+        PdfPCell valueCell = new PdfPCell(new Phrase(value != null ? value : "", font));
         valueCell.setPadding(8);
         valueCell.setBorderColor(Color.decode("#e5e7eb"));
 

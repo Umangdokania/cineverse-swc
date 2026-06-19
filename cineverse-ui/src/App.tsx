@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -37,57 +37,57 @@ import SystemReports from './pages/admin/SystemReports';
 
 // Layout wrapper for pages that need Navbar
 const MainLayout = () => (
-  <>
+  <div className="flex flex-col min-h-screen">
     <Navbar />
-    <Outlet />
-  </>
+    <main className="flex-1">
+      <Outlet />
+    </main>
+  </div>
 );
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-        <Routes>
-          {/* Main layout with Navbar */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/movies" element={<MovieCatalog />} />
-            <Route path="/movies/:id" element={<MovieDetails />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            
-            {/* Customer Booking Flow */}
-            <Route path="/location" element={<LocationSelection />} />
-            <Route path="/theatres/:movieId" element={<TheatreSelection />} />
-            <Route path="/shows/:theatreId" element={<ShowtimeSelection />} />
-            <Route path="/book/:movieId" element={<BookingFlow />} />
-            <Route path="/summary" element={<BookingSummary />} />
-            <Route path="/confirmation" element={<BookingConfirmation />} />
-            
-            {/* Customer Profile */}
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/settings" element={<UserSettings />} />
-            <Route path="/history" element={<BookingHistory />} />
-            
-            {/* Theatre Owner Module */}
-            <Route path="/owner" element={<OwnerDashboard />} />
-            <Route path="/owner/movies" element={<ManageMovies />} />
-            <Route path="/owner/shows" element={<ManageShows />} />
-            <Route path="/owner/bookings" element={<ViewBookings />} />
-            <Route path="/owner/screens" element={<ScreenManagement />} />
-            <Route path="/owner/seats" element={<SeatLayoutConfig />} />
+      <Routes>
+        {/* Main layout with Navbar */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/movies" element={<MovieCatalog />} />
+          <Route path="/movies/:id" element={<MovieDetails />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
+          {/* Customer Booking Flow */}
+          <Route path="/location" element={<LocationSelection />} />
+          <Route path="/theatres/:movieId" element={<TheatreSelection />} />
+          <Route path="/shows/:theatreId" element={<ShowtimeSelection />} />
+          <Route path="/book/:movieId" element={<BookingFlow />} />
+          <Route path="/summary" element={<BookingSummary />} />
+          <Route path="/confirmation" element={<BookingConfirmation />} />
+          
+          {/* Customer Profile */}
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/settings" element={<UserSettings />} />
+          <Route path="/history" element={<BookingHistory />} />
+          
+          {/* Theatre Owner Module */}
+          <Route path="/owner" element={<OwnerDashboard />} />
+          <Route path="/owner/movies" element={<ManageMovies />} />
+          <Route path="/owner/shows" element={<ManageShows />} />
+          <Route path="/owner/bookings" element={<ViewBookings />} />
+          <Route path="/owner/screens" element={<ScreenManagement />} />
+          <Route path="/owner/seats" element={<SeatLayoutConfig />} />
 
-            {/* Admin Module */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<ManageUsers />} />
-            <Route path="/admin/theatres" element={<ManageTheatres />} />
-            <Route path="/admin/requests" element={<TheatreRequests />} />
-            <Route path="/admin/reports" element={<SystemReports />} />
-          </Route>
-        </Routes>
-      </div>
+          {/* Admin Module */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<ManageUsers />} />
+          <Route path="/admin/theatres" element={<ManageTheatres />} />
+          <Route path="/admin/requests" element={<TheatreRequests />} />
+          <Route path="/admin/reports" element={<SystemReports />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }

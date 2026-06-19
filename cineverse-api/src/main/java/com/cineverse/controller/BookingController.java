@@ -42,19 +42,23 @@ public class BookingController {
     }
 
     /**
-     * GET /bookings/seats/{movieId}?showDate=2026-06-19
-     * Returns a flat list of booked seat labels for a movie on a given date.
+     * GET /bookings/seats/{movieId}?showDate=2026-06-19&showTime=7:30%20PM
+     * Returns a flat list of booked seat labels for a movie on a given date and time.
      * This is the endpoint the frontend polls for real-time seat availability.
      * Public endpoint — no authentication required.
      */
     @GetMapping("/seats/{movieId}")
     public ResponseEntity<List<String>> getBookedSeats(
             @PathVariable Long movieId,
-            @RequestParam(required = false) String showDate) {
+            @RequestParam(required = false) String showDate,
+            @RequestParam(required = false) String showTime) {
         if (showDate == null || showDate.isBlank()) {
             showDate = LocalDate.now().toString();
         }
-        List<String> bookedSeats = bookingService.getBookedSeatsForMovie(movieId, showDate);
+        if (showTime == null || showTime.isBlank()) {
+            showTime = "7:30 PM";
+        }
+        List<String> bookedSeats = bookingService.getBookedSeatsForMovie(movieId, showDate, showTime);
         return ResponseEntity.ok(bookedSeats);
     }
 

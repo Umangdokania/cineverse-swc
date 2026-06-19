@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,13 +54,26 @@ public class BookingService {
             showDate = LocalDate.now().toString();
         }
 
-        final String finalShowDate = showDate;
+        String showTime = request.getShowTime();
+        if (showTime == null || showTime.isBlank()) {
+            showTime = "7:30 PM"; // fallback default
+        }
 
-        // Synchronized on a per-movie+date key to prevent race conditions
-        // while still allowing concurrent bookings for different movies
-        synchronized (getBookingLock(movieId, finalShowDate)) {
-            // Check for already-booked seats for this movie on this date
-            List<String> bookedSeats = getBookedSeatsForMovie(movieId, finalShowDate);
+        final String finalShowDate = showDate;
+        final String finalShowTime = showTime;
+
+        // Synchronized on a per-movie+date+time key to prevent race conditions
+        synchronized (getBookingLock(movieId, finalShowDate, finalShowTime)) {
+            // Check for already-booked seats for this movie on this date and time
+            // We need to fetch by date. To be perfectly accurate we'd also filter by time.
+            // But let's assume we fetch all bookings for the movie and filter them.
+            List<Booking> existingBookings = bookingRepository.findByMovieIdAndShowDate(movieId, finalShowDate);
+            
+            List<String> bookedSeats = existingBookings.stream()
+                    .filter(b -> finalShowTime.equals(b.getShowTime()))
+                    .flatMap(b -> Arrays.stream(b.getSeats().split(",")))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
 
             List<String> conflicting = request.getSeats().stream()
                     .filter(bookedSeats::contains)
@@ -76,6 +90,11 @@ public class BookingService {
             booking.setSeats(String.join(",", request.getSeats()));
             booking.setTotalSeats(request.getSeats().size());
             booking.setShowDate(finalShowDate);
+            booking.setShowTime(finalShowTime);
+            
+            // Generate real transaction ID (uppercase UUID segment for realism)
+            String transId = "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            booking.setTransactionId(transId);
 
             Booking savedBooking = bookingRepository.save(booking);
 
@@ -89,12 +108,13 @@ public class BookingService {
     }
 
     /**
-     * Returns a flat list of all booked seat labels for a movie on a given date.
+     * Returns a flat list of all booked seat labels for a movie on a given date and time.
      * e.g. ["A1", "A2", "B5", "C3"]
      */
-    public List<String> getBookedSeatsForMovie(Long movieId, String showDate) {
+    public List<String> getBookedSeatsForMovie(Long movieId, String showDate, String showTime) {
         List<Booking> bookings = bookingRepository.findByMovieIdAndShowDate(movieId, showDate);
         return bookings.stream()
+                .filter(b -> showTime.equals(b.getShowTime()))
                 .flatMap(b -> Arrays.stream(b.getSeats().split(",")))
                 .map(String::trim)
                 .collect(Collectors.toList());
@@ -108,12 +128,12 @@ public class BookingService {
         return bookingRepository.findByMovieId(movieId);
     }
 
-    // ── Lock management for per-movie+date synchronization ──
+    // ── Lock management for per-movie+date+time synchronization ──
     private static final java.util.concurrent.ConcurrentHashMap<String, Object> LOCKS =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    private Object getBookingLock(Long movieId, String showDate) {
-        String key = movieId + ":" + showDate;
+    private Object getBookingLock(Long movieId, String showDate, String showTime) {
+        String key = movieId + ":" + showDate + ":" + showTime;
         return LOCKS.computeIfAbsent(key, k -> new Object());
     }
 }
