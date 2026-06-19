@@ -1,15 +1,12 @@
 # Build stage
 FROM gradle:8.5-jdk17 AS build
 WORKDIR /app
-# Copy the gradle wrapper and build files
-COPY build.gradle settings.gradle* gradle/ ./
-COPY gradlew ./
-# Make wrapper executable
-RUN chmod +x ./gradlew
+# Copy the build files
+COPY build.gradle settings.gradle* ./
 # Copy source code
 COPY src ./src
 # Build the application
-RUN ./gradlew clean build -x test
+RUN gradle clean build -x test
 
 # Run stage
 FROM eclipse-temurin:17-jre
