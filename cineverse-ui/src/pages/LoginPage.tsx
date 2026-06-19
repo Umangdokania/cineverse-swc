@@ -33,14 +33,14 @@ const LoginPage = () => {
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-slate-50 px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden">
-        
+
         <div className="p-8">
           <div className="flex justify-center mb-6">
             <div className="bg-brand-50 p-3 rounded-full text-brand-600">
               <Ticket className="h-8 w-8" />
             </div>
           </div>
-          
+
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Welcome Back</h2>
           <p className="text-slate-500 text-center text-sm mb-8">Sign in to your Cineverse account</p>
 
@@ -96,7 +96,7 @@ const LoginPage = () => {
               </div>
               <div className="flex items-center justify-end mt-2">
                 <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-500">
-                  Forgot your password?
+
                 </Link>
               </div>
             </div>
@@ -112,7 +112,7 @@ const LoginPage = () => {
             </button>
           </form>
         </div>
-        
+
         <div className="bg-slate-50 px-8 py-4 border-t border-slate-200 text-center">
           <p className="text-sm text-slate-600">
             Don't have an account?{' '}
