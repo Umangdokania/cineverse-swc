@@ -21,6 +21,12 @@ public class BookingService {
     @Autowired
     private MovieRepository movieRepository;
 
+    @Autowired
+    private PdfGenerationService pdfGenerationService;
+
+    @Autowired
+    private EmailService emailService;
+
     /**
      * Create a booking with synchronized seat-conflict protection.
      * The synchronized block prevents two concurrent requests from
@@ -71,7 +77,14 @@ public class BookingService {
             booking.setTotalSeats(request.getSeats().size());
             booking.setShowDate(finalShowDate);
 
-            return bookingRepository.save(booking);
+            Booking savedBooking = bookingRepository.save(booking);
+
+            // Generate PDF and send confirmation email
+            com.cineverse.entity.Movie movie = movieRepository.findById(movieId).get();
+            byte[] pdfBytes = pdfGenerationService.generateTicketPdf(savedBooking, movie);
+            emailService.sendBookingConfirmation(userEmail, savedBooking, movie, pdfBytes);
+
+            return savedBooking;
         }
     }
 

@@ -73,7 +73,7 @@ const LoginPage = () => {
                   Password
                 </label>
                 <Link to="#" className="text-sm font-medium text-brand-600 hover:text-brand-500">
-                  Forgot password?
+
                 </Link>
               </div>
               <div className="relative">
@@ -96,7 +96,7 @@ const LoginPage = () => {
               </div>
               <div className="flex items-center justify-end mt-2">
                 <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-500">
-
+                  Forgot your password?
                 </Link>
               </div>
             </div>

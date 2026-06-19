@@ -16,6 +16,9 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     public User register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
@@ -25,6 +28,12 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole() != null ? request.getRole() : User.Role.USER);
-        return userRepository.save(user);
+        
+        User savedUser = userRepository.save(user);
+        
+        // Send welcome email with raw password
+        emailService.sendWelcomeEmail(request.getEmail(), request.getName(), request.getPassword());
+        
+        return savedUser;
     }
 }
