@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ArrowLeft, Ticket, CheckCircle2 } from 'lucide-react';
-import { getMovieById, isAuthenticated } from '../../services/api';
+import { getMovieById, getBookedSeats, isAuthenticated } from '../../services/api';
 import SeatSelection from './SeatSelection';
 
 const BookingFlow = () => {
@@ -14,6 +14,10 @@ const BookingFlow = () => {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+
+  // Today's date as the show date
+  const showDate = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -22,17 +26,24 @@ const BookingFlow = () => {
     }
 
     if (movieId) {
-      getMovieById(Number(movieId))
-        .then((res) => setMovie(res.data))
+      // Fetch movie details and booked seats in parallel
+      Promise.all([
+        getMovieById(Number(movieId)),
+        getBookedSeats(Number(movieId), showDate)
+      ])
+        .then(([movieRes, seatsRes]) => {
+          setMovie(movieRes.data);
+          setBookedSeats(seatsRes.data);
+        })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [movieId, navigate]);
+  }, [movieId, navigate, showDate]);
 
   const handleSeatConfirm = (seats: string[]) => {
     setSelectedSeats(seats);
     // Navigate to summary/checkout page with booking state
-    navigate('/summary', { state: { movie, ticketCount, selectedSeats: seats } });
+    navigate('/summary', { state: { movie, ticketCount, selectedSeats: seats, showDate } });
   };
 
   if (loading) return <div className="p-12 text-center text-slate-500 font-medium">Loading booking flow...</div>;
@@ -47,7 +58,7 @@ const BookingFlow = () => {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{movie.title}</h1>
-          <p className="text-sm text-slate-500">PVR Cinemas • Today, 7:30 PM</p>
+          <p className="text-sm text-slate-500">Cineverse Premium • Today, 7:30 PM</p>
         </div>
       </div>
 
@@ -102,11 +113,13 @@ const BookingFlow = () => {
         </div>
       )}
 
-      {/* Step 2: Seat Selection */}
+      {/* Step 2: Seat Selection — uses real booked seats from API */}
       {step === 2 && (
         <SeatSelection
+          movieId={Number(movieId)}
+          showDate={showDate}
           numRequired={ticketCount}
-          bookedSeats={['B4', 'B5', 'D2']} // Mock data
+          bookedSeats={bookedSeats}
           onConfirm={handleSeatConfirm}
         />
       )}

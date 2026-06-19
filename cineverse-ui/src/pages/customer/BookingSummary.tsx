@@ -6,7 +6,7 @@ import { createBooking } from '../../services/api';
 const BookingSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as { movie: any, ticketCount: number, selectedSeats: string[] } | null;
+  const state = location.state as { movie: any, ticketCount: number, selectedSeats: string[], showDate?: string } | null;
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi'>('card');
   const [submitting, setSubmitting] = useState(false);
@@ -16,7 +16,7 @@ const BookingSummary = () => {
     return <Navigate to="/movies" replace />;
   }
 
-  const { movie, ticketCount, selectedSeats } = state;
+  const { movie, ticketCount, selectedSeats, showDate } = state;
   const ticketPrice = 250;
   const convenienceFee = 30;
   const totalAmount = (ticketCount * ticketPrice) + convenienceFee;
@@ -27,11 +27,11 @@ const BookingSummary = () => {
     setError(null);
 
     try {
-      const response = await createBooking(movie.id, selectedSeats);
+      const response = await createBooking(movie.id, selectedSeats, showDate);
       // Navigate to confirmation with booking ID
       navigate('/confirmation', { state: { booking: response.data, movie } });
     } catch (err: any) {
-      setError(err.response?.data || 'Failed to complete booking. Seats might already be taken.');
+      setError(err.response?.data?.error || err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response?.data : 'Failed to complete booking. Seats might already be taken.'));
     } finally {
       setSubmitting(false);
     }

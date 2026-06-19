@@ -37,7 +37,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -59,7 +59,8 @@ public class SecurityConfig {
                 // Preflight requests must always pass
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public endpoints
-                .antMatchers("/auth/**", "/movies/**", "/theatres/**").permitAll()
+                .antMatchers("/auth/**", "/movies/**", "/theatres/**",
+                             "/bookings/seats/**", "/bookings/movie/**").permitAll()
                 // Everything else requires a valid JWT
                 .anyRequest().authenticated()
             )

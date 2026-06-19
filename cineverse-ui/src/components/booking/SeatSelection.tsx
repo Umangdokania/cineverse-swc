@@ -1,19 +1,62 @@
-import React, { useState } from 'react';
-import { ScreenShare } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Radio } from 'lucide-react';
+import { getBookedSeats } from '../../services/api';
 
 interface SeatSelectionProps {
+  movieId: number;
+  showDate: string;
   numRequired: number;
   bookedSeats: string[];
   onConfirm: (seats: string[]) => void;
   submitting?: boolean;
 }
 
-const SeatSelection = ({ numRequired, bookedSeats, onConfirm, submitting = false }: SeatSelectionProps) => {
+const POLL_INTERVAL = 5000; // 5 seconds
+
+const SeatSelection = ({ movieId, showDate, numRequired, bookedSeats: initialBookedSeats, onConfirm, submitting = false }: SeatSelectionProps) => {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [bookedSeats, setBookedSeats] = useState<string[]>(initialBookedSeats);
+  const [seatJustTaken, setSeatJustTaken] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(true);
+  const prevBookedRef = useRef<Set<string>>(new Set(initialBookedSeats));
 
   // 5 rows × 8 columns = 40 seats: A1–E8
   const rows = ['A', 'B', 'C', 'D', 'E'];
   const cols = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  // Poll for real-time seat updates
+  const fetchBookedSeats = useCallback(async () => {
+    try {
+      const res = await getBookedSeats(movieId, showDate);
+      const newBooked = res.data;
+      const newBookedSet = new Set(newBooked);
+
+      // Check if any of the user's selected seats were taken by someone else
+      setSelectedSeats(prev => {
+        const conflicting = prev.filter(s => newBookedSet.has(s));
+        if (conflicting.length > 0) {
+          // Show notification for the first conflicting seat
+          setSeatJustTaken(conflicting.join(', '));
+          setTimeout(() => setSeatJustTaken(null), 4000);
+          // Remove conflicting seats from selection
+          return prev.filter(s => !newBookedSet.has(s));
+        }
+        return prev;
+      });
+
+      setBookedSeats(newBooked);
+      prevBookedRef.current = newBookedSet;
+      setIsLive(true);
+    } catch {
+      setIsLive(false);
+    }
+  }, [movieId, showDate]);
+
+  // Set up polling interval
+  useEffect(() => {
+    const interval = setInterval(fetchBookedSeats, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchBookedSeats]);
 
   const toggleSeat = (seat: string) => {
     if (bookedSeats.includes(seat)) return;
@@ -47,16 +90,36 @@ const SeatSelection = ({ numRequired, bookedSeats, onConfirm, submitting = false
           <h3 className="text-lg font-bold text-slate-900">Select Seats</h3>
           <p className="text-sm text-slate-500">Choose {numRequired} seat{numRequired > 1 ? 's' : ''}</p>
         </div>
-        <div className="flex gap-4 text-sm font-medium">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-white border border-brand-300"></div> Available
+        <div className="flex items-center gap-4">
+          {/* Live indicator */}
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+            isLive 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-amber-50 text-amber-700 border border-amber-200'
+          }`}>
+            <Radio className={`h-3 w-3 ${isLive ? 'text-green-500 animate-pulse' : 'text-amber-500'}`} />
+            {isLive ? 'LIVE' : 'Offline'}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-brand-600 border border-brand-700"></div> Selected
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300"></div> Taken
-          </div>
+        </div>
+      </div>
+
+      {/* Seat Taken Alert */}
+      {seatJustTaken && (
+        <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm font-medium flex items-center gap-2 animate-pulse">
+          ⚠️ Seat{seatJustTaken.includes(',') ? 's' : ''} <strong>{seatJustTaken}</strong> {seatJustTaken.includes(',') ? 'were' : 'was'} just booked by another user!
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="flex gap-4 text-sm font-medium mb-6 justify-center">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-white border border-brand-300"></div> Available
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-brand-600 border border-brand-700"></div> Selected
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300"></div> Taken
         </div>
       </div>
 

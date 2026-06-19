@@ -94,6 +94,11 @@ const LoginPage = () => {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              <div className="flex items-center justify-end mt-2">
+                <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-500">
+                  Forgot your password?
+                </Link>
+              </div>
             </div>
 
             <button

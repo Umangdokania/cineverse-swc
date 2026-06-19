@@ -33,6 +33,10 @@ public class Booking {
     @Column(name = "total_seats", nullable = false)
     private Integer totalSeats;
 
+    /** The date of the show, e.g. "2026-06-19" */
+    @Column(name = "show_date", nullable = false)
+    private String showDate;
+
     @PrePersist
     protected void onCreate() {
         bookedAt = LocalDateTime.now();

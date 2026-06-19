@@ -1,11 +1,14 @@
 package com.cineverse.controller;
 
 import com.cineverse.dto.AuthRequest;
+import com.cineverse.dto.ForgotPasswordRequest;
 import com.cineverse.dto.RegisterRequest;
+import com.cineverse.dto.ResetPasswordRequest;
 import com.cineverse.entity.User;
 import com.cineverse.repository.UserRepository;
 import com.cineverse.security.JwtUtils;
 import com.cineverse.service.AuthService;
+import com.cineverse.service.PasswordResetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +62,25 @@ public class AuthController {
                 "name", user.getName(),
                 "role", user.getRole().name()
         ));
+    }
+
+    @Autowired
+    private PasswordResetService passwordResetService;
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        passwordResetService.createAndSendResetToken(request.getEmail());
+        // Always return success to prevent email enumeration
+        return ResponseEntity.ok(Map.of("message", "If an account exists with that email, a password reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

@@ -7,4 +7,5 @@ import java.util.List;
 public class BookingRequest {
     private Long movieId;
     private List<String> seats;
+    private String showDate;
 }

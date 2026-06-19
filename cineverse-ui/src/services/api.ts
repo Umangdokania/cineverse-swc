@@ -70,13 +70,19 @@ export const getMovieById = async (id: number) => api.get<Movie>(`/movies/${id}`
 export const getTheatres = async () => api.get<Theatre[]>('/theatres');
 
 // ── Bookings ──────────────────────────────────────────────
-export const createBooking = async (movieId: number, seats: string[]) =>
-  api.post<Booking>('/bookings', { movieId, seats });
+export const createBooking = async (movieId: number, seats: string[], showDate?: string) =>
+  api.post<Booking>('/bookings', { movieId, seats, showDate: showDate || new Date().toISOString().split('T')[0] });
 
 export const getMyBookings = async () => api.get<Booking[]>('/bookings/my');
 
 export const getBookingsForMovie = async (movieId: number) =>
   api.get<Booking[]>(`/bookings/movie/${movieId}`);
+
+/** Fetch list of booked seat labels for a movie on a given date (for real-time seat map) */
+export const getBookedSeats = async (movieId: number, showDate?: string) => {
+  const date = showDate || new Date().toISOString().split('T')[0];
+  return api.get<string[]>(`/bookings/seats/${movieId}`, { params: { showDate: date } });
+};
 
 // ── Auth helpers ──────────────────────────────────────────
 export const saveAuthData = (data: LoginResponse) => {
@@ -98,5 +104,11 @@ export const isAuthenticated = (): boolean =>
 
 export const getAuthName = (): string =>
   localStorage.getItem('authName') ?? '';
+
+export const forgotPassword = async (email: string) =>
+  api.post<{ message: string }>('/auth/forgot-password', { email });
+
+export const resetPassword = async (token: string, newPassword: string) =>
+  api.post<{ message: string }>('/auth/reset-password', { token, newPassword });
 
 export default api;
