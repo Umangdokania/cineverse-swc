@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public endpoints
                 .antMatchers("/auth/**", "/movies/**", "/theatres/**",
-                             "/bookings/seats/**", "/bookings/movie/**").permitAll()
+                             "/bookings/seats/**", "/bookings/movie/**", "/error").permitAll()
                 // Everything else requires a valid JWT
                 .anyRequest().authenticated()
             )
